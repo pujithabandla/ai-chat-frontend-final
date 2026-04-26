@@ -1,59 +1,201 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
+import "./App.css";
+
+const API_URL = "https://ai-chat-backend-r8jz.onrender.com/chat";
 
 function App() {
-  const [messages, setMessages] = useState([]);
+  const [username, setUsername] = useState(localStorage.getItem("username") || "");
+  const [loginName, setLoginName] = useState("");
+
+  const [chats, setChats] = useState(() => {
+    const saved = localStorage.getItem("chats");
+    return saved
+      ? JSON.parse(saved)
+      : [{ id: Date.now(), title: "New Chat", messages: [] }];
+  });
+
+  const [activeChat, setActiveChat] = useState(chats[0].id);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const chatEndRef = useRef(null);
+
+  // ✅ FIXED using useMemo (removes warning)
+  const currentChat = useMemo(
+    () => chats.find((c) => c.id === activeChat),
+    [chats, activeChat]
+  );
+
+  const messages = currentChat?.messages || [];
+
+  useEffect(() => {
+    localStorage.setItem("chats", JSON.stringify(chats));
+  }, [chats]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const setMessages = (newMessages) => {
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === activeChat ? { ...chat, messages: newMessages } : chat
+      )
+    );
+  };
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
 
-    const userMessage = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const userText = input;
+    const newMessages = [...messages, { role: "user", content: userText }];
+    setMessages(newMessages);
+
     setInput("");
+    setLoading(true);
 
     try {
-      const res = await fetch("https://ai-chat-backend-r8jz.onrender.com/chat", {
+      const res = await fetch(API_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          user_id: "user1",
-          message: input
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: username, message: userText }),
       });
 
       const data = await res.json();
+      const reply = data.response || "No response";
 
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.response }
-      ]);
+      let current = "";
+      for (let i = 0; i < reply.length; i++) {
+        current += reply[i];
 
+        setMessages([
+          ...newMessages,
+          { role: "assistant", content: current },
+        ]);
+
+        await new Promise((r) => setTimeout(r, 8));
+      }
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Error connecting to backend" }
+      setMessages([
+        ...newMessages,
+        { role: "assistant", content: "Error connecting" },
       ]);
     }
+
+    setLoading(false);
   };
 
-  return (
-    <div style={{ padding: 20 }}>
-      <h1>AI Chat</h1>
+  const createNewChat = () => {
+    const newChat = { id: Date.now(), title: "New Chat", messages: [] };
+    setChats([newChat, ...chats]);
+    setActiveChat(newChat.id);
+  };
 
-      {messages.map((m, i) => (
-        <div key={i}>
-          <b>{m.role}:</b> {m.content}
+  const deleteChat = (id) => {
+    const filtered = chats.filter((c) => c.id !== id);
+    setChats(filtered);
+    if (filtered.length) setActiveChat(filtered[0].id);
+  };
+
+  const copyText = (text) => navigator.clipboard.writeText(text);
+
+  const login = () => {
+    if (!loginName.trim()) return;
+    localStorage.setItem("username", loginName);
+    setUsername(loginName);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("username");
+    setUsername("");
+  };
+
+  // 🔥 LOGIN UI
+  if (!username) {
+    return (
+      <div className="login-page">
+        <div className="login-container">
+
+          <div className="login-left">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png"
+              alt="AI Bot"   /* ✅ FIXED */
+            />
+          </div>
+
+          <div className="login-right">
+            <h2>AI Chat</h2>
+
+            <input
+              placeholder="Enter your name"
+              value={loginName}
+              onChange={(e) => setLoginName(e.target.value)}
+            />
+
+            <button onClick={login}>Start Chat</button>
+          </div>
+
         </div>
-      ))}
+      </div>
+    );
+  }
 
-      <input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-      />
+  return (
+    <div className="layout">
 
-      <button onClick={sendMessage}>Send</button>
+      {/* Sidebar */}
+      <div className="sidebar">
+        <div className="profile">
+          {username}
+          <button onClick={logout}>Logout</button>
+        </div>
+
+        <button className="new-chat" onClick={createNewChat}>
+          + New Chat
+        </button>
+
+        {chats.map((chat) => (
+          <div
+            key={chat.id}
+            className={`chat-item ${chat.id === activeChat ? "active" : ""}`}
+            onClick={() => setActiveChat(chat.id)}
+          >
+            {chat.title}
+            <span onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}>
+              ✕
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Chat */}
+      <div className="app">
+        <div className="header">AI Chat Assistant</div>
+
+        <div className="chat-container">
+          {messages.map((msg, i) => (
+            <div key={i} className={`message ${msg.role}`}>
+              <ReactMarkdown>{msg.content}</ReactMarkdown>
+              <button onClick={() => copyText(msg.content)}>Copy</button>
+            </div>
+          ))}
+
+          {loading && <div className="typing">Typing...</div>}
+          <div ref={chatEndRef}></div>
+        </div>
+
+        <div className="input-container">
+          <input
+            value={input}
+            placeholder="Type your message..."
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          />
+          <button onClick={sendMessage}>Send</button>
+        </div>
+      </div>
+
     </div>
   );
 }

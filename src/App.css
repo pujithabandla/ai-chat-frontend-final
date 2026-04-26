@@ -1,38 +1,252 @@
-.App {
-  text-align: center;
+/* RESET */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: #f9fafb;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
+/* =========================
+   🔥 LOGIN PAGE (PREMIUM)
+========================= */
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.login-page {
+  height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.login-container {
+  display: flex;
+  width: 800px;
+  height: 420px;
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+/* LEFT SIDE */
+.login-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-left img {
+  width: 220px;
+  animation: float 3s ease-in-out infinite;
+}
+
+/* FLOAT EFFECT */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* RIGHT SIDE */
+.login-right {
+  flex: 1;
+  background: white;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-right h2 {
+  color: #4f46e5;
+  margin-bottom: 20px;
+}
+
+.login-right input {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.login-right button {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.login-right button:hover {
+  transform: scale(1.05);
+}
+
+/* =========================
+   💬 MAIN LAYOUT
+========================= */
+
+.layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* =========================
+   📁 SIDEBAR
+========================= */
+
+.sidebar {
+  width: 260px;
+  background: #f3f4f6;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.profile button {
+  border: none;
+  background: #7c3aed;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* New Chat Button */
+.new-chat {
+  padding: 10px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+/* Chat Items */
+.chat-item {
+  padding: 10px;
+  border-radius: 8px;
+  background: white;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.chat-item.active {
+  background: #ddd6fe;
+}
+
+.chat-item span {
+  cursor: pointer;
+  color: red;
+}
+
+/* =========================
+   🧠 CHAT AREA
+========================= */
+
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  padding: 15px;
+  text-align: center;
+  font-weight: bold;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+/* Chat Messages */
+.chat-container {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Message Bubble */
+.message {
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  max-width: 70%;
+  position: relative;
+  line-height: 1.4;
+}
+
+/* User Message */
+.message.user {
+  background: #ede9fe;
+  margin-left: auto;
+}
+
+/* Assistant Message */
+.message.assistant {
+  background: #e5e7eb;
+  margin-right: auto;
+}
+
+/* Copy Button */
+.message button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 10px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  padding: 3px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* =========================
+   ⌨️ INPUT AREA
+========================= */
+
+.input-container {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.input-container input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.input-container button {
+  margin-left: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #7c3aed;
+  color: white;
+  cursor: pointer;
+}
+
+/* =========================
+   ✨ TYPING INDICATOR
+========================= */
+
+.typing {
+  color: gray;
+  font-style: italic;
 }
