@@ -15,16 +15,13 @@ function App() {
       : [{ id: Date.now(), title: "New Chat", messages: [] }];
   });
 
-  const [activeChat, setActiveChat] = useState(() => {
-    return chats.length ? chats[0].id : null;
-  });
-
+  const [activeChat, setActiveChat] = useState(() => chats[0].id);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const chatEndRef = useRef(null);
 
-  // ✅ FIX: useMemo (removes Vercel error)
+  // ✅ FIXED (no Vercel warning)
   const currentChat = useMemo(
     () => chats.find((c) => c.id === activeChat),
     [chats, activeChat]
@@ -55,7 +52,6 @@ function App() {
     if (!input.trim() || loading) return;
 
     const userText = input;
-
     const newMessages = [...messages, { role: "user", content: userText }];
     setMessages(newMessages);
 
@@ -65,13 +61,8 @@ function App() {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          user_id: username,
-          message: userText
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: username, message: userText }),
       });
 
       const data = await res.json();
@@ -84,16 +75,15 @@ function App() {
 
         setMessages([
           ...newMessages,
-          { role: "assistant", content: current }
+          { role: "assistant", content: current },
         ]);
 
         await new Promise((r) => setTimeout(r, 8));
       }
-
     } catch {
       setMessages([
         ...newMessages,
-        { role: "assistant", content: "Error connecting" }
+        { role: "assistant", content: "Error connecting" },
       ]);
     }
 
@@ -101,24 +91,20 @@ function App() {
   };
 
   const createNewChat = () => {
-    const newChat = {
-      id: Date.now(),
-      title: "New Chat",
-      messages: []
-    };
+    const newChat = { id: Date.now(), title: "New Chat", messages: [] };
     setChats([newChat, ...chats]);
     setActiveChat(newChat.id);
   };
 
   const deleteChat = (id) => {
     const filtered = chats.filter((c) => c.id !== id);
-    if (filtered.length) {
-      setChats(filtered);
-      setActiveChat(filtered[0].id);
-    } else {
+    if (filtered.length === 0) {
       const fresh = { id: Date.now(), title: "New Chat", messages: [] };
       setChats([fresh]);
       setActiveChat(fresh.id);
+    } else {
+      setChats(filtered);
+      setActiveChat(filtered[0].id);
     }
   };
 
@@ -142,7 +128,6 @@ function App() {
     return (
       <div className="login-page">
         <div className="login-container">
-
           <div className="login-left">
             <img
               src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png"
@@ -161,15 +146,14 @@ function App() {
 
             <button onClick={login}>Start Chat</button>
           </div>
-
         </div>
       </div>
     );
   }
 
+  // 💬 MAIN CHAT UI
   return (
     <div className="layout">
-
       {/* Sidebar */}
       <div className="sidebar">
         <div className="profile">
@@ -208,15 +192,11 @@ function App() {
           {messages.map((msg, i) => (
             <div key={i} className={`message ${msg.role}`}>
               <ReactMarkdown>{msg.content}</ReactMarkdown>
-
-              <button onClick={() => copyText(msg.content)}>
-                Copy
-              </button>
+              <button onClick={() => copyText(msg.content)}>Copy</button>
             </div>
           ))}
 
           {loading && <div className="typing">Typing...</div>}
-
           <div ref={chatEndRef}></div>
         </div>
 
@@ -227,7 +207,6 @@ function App() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
-
           <button onClick={sendMessage}>Send</button>
         </div>
       </div>
