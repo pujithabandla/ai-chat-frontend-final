@@ -15,19 +15,25 @@ function App() {
       : [{ id: Date.now(), title: "New Chat", messages: [] }];
   });
 
-  const [activeChat, setActiveChat] = useState(chats[0].id);
+  const [activeChat, setActiveChat] = useState(() => {
+    return chats.length ? chats[0].id : null;
+  });
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const chatEndRef = useRef(null);
 
-  // ✅ FIXED using useMemo (removes warning)
+  // ✅ FIXED (no warning)
   const currentChat = useMemo(
     () => chats.find((c) => c.id === activeChat),
     [chats, activeChat]
   );
 
-  const messages = currentChat?.messages || [];
+  const messages = useMemo(
+    () => currentChat?.messages || [],
+    [currentChat]
+  );
 
   useEffect(() => {
     localStorage.setItem("chats", JSON.stringify(chats));
@@ -95,10 +101,19 @@ function App() {
   const deleteChat = (id) => {
     const filtered = chats.filter((c) => c.id !== id);
     setChats(filtered);
-    if (filtered.length) setActiveChat(filtered[0].id);
+
+    if (filtered.length) {
+      setActiveChat(filtered[0].id);
+    } else {
+      const fresh = { id: Date.now(), title: "New Chat", messages: [] };
+      setChats([fresh]);
+      setActiveChat(fresh.id);
+    }
   };
 
-  const copyText = (text) => navigator.clipboard.writeText(text);
+  const copyText = (text) => {
+    navigator.clipboard.writeText(text);
+  };
 
   const login = () => {
     if (!loginName.trim()) return;
@@ -111,7 +126,7 @@ function App() {
     setUsername("");
   };
 
-  // 🔥 LOGIN UI
+  // 🔐 LOGIN UI
   if (!username) {
     return (
       <div className="login-page">
@@ -120,7 +135,7 @@ function App() {
           <div className="login-left">
             <img
               src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png"
-              alt="AI Bot"   /* ✅ FIXED */
+              alt="AI Bot"
             />
           </div>
 
@@ -162,7 +177,12 @@ function App() {
             onClick={() => setActiveChat(chat.id)}
           >
             {chat.title}
-            <span onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}>
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteChat(chat.id);
+              }}
+            >
               ✕
             </span>
           </div>
@@ -195,7 +215,6 @@ function App() {
           <button onClick={sendMessage}>Send</button>
         </div>
       </div>
-
     </div>
   );
 }
