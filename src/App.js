@@ -24,7 +24,7 @@ function App() {
 
   const chatEndRef = useRef(null);
 
-  // ✅ FIXED (no warning)
+  // ✅ FIX: useMemo (removes Vercel error)
   const currentChat = useMemo(
     () => chats.find((c) => c.id === activeChat),
     [chats, activeChat]
@@ -55,6 +55,7 @@ function App() {
     if (!input.trim() || loading) return;
 
     const userText = input;
+
     const newMessages = [...messages, { role: "user", content: userText }];
     setMessages(newMessages);
 
@@ -64,28 +65,35 @@ function App() {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: username, message: userText }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          user_id: username,
+          message: userText
+        })
       });
 
       const data = await res.json();
       const reply = data.response || "No response";
 
       let current = "";
+
       for (let i = 0; i < reply.length; i++) {
         current += reply[i];
 
         setMessages([
           ...newMessages,
-          { role: "assistant", content: current },
+          { role: "assistant", content: current }
         ]);
 
         await new Promise((r) => setTimeout(r, 8));
       }
+
     } catch {
       setMessages([
         ...newMessages,
-        { role: "assistant", content: "Error connecting" },
+        { role: "assistant", content: "Error connecting" }
       ]);
     }
 
@@ -93,16 +101,19 @@ function App() {
   };
 
   const createNewChat = () => {
-    const newChat = { id: Date.now(), title: "New Chat", messages: [] };
+    const newChat = {
+      id: Date.now(),
+      title: "New Chat",
+      messages: []
+    };
     setChats([newChat, ...chats]);
     setActiveChat(newChat.id);
   };
 
   const deleteChat = (id) => {
     const filtered = chats.filter((c) => c.id !== id);
-    setChats(filtered);
-
     if (filtered.length) {
+      setChats(filtered);
       setActiveChat(filtered[0].id);
     } else {
       const fresh = { id: Date.now(), title: "New Chat", messages: [] };
@@ -197,11 +208,15 @@ function App() {
           {messages.map((msg, i) => (
             <div key={i} className={`message ${msg.role}`}>
               <ReactMarkdown>{msg.content}</ReactMarkdown>
-              <button onClick={() => copyText(msg.content)}>Copy</button>
+
+              <button onClick={() => copyText(msg.content)}>
+                Copy
+              </button>
             </div>
           ))}
 
           {loading && <div className="typing">Typing...</div>}
+
           <div ref={chatEndRef}></div>
         </div>
 
@@ -212,6 +227,7 @@ function App() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
+
           <button onClick={sendMessage}>Send</button>
         </div>
       </div>
