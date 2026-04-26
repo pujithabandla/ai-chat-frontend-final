@@ -15,13 +15,16 @@ function App() {
       : [{ id: Date.now(), title: "New Chat", messages: [] }];
   });
 
-  const [activeChat, setActiveChat] = useState(() => chats[0].id);
+  const [activeChat, setActiveChat] = useState(() =>
+    chats.length ? chats[0].id : null
+  );
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const chatEndRef = useRef(null);
 
-  // ✅ FIXED (no Vercel warning)
+  // ✅ FIX (removes Vercel error)
   const currentChat = useMemo(
     () => chats.find((c) => c.id === activeChat),
     [chats, activeChat]
@@ -98,6 +101,7 @@ function App() {
 
   const deleteChat = (id) => {
     const filtered = chats.filter((c) => c.id !== id);
+
     if (filtered.length === 0) {
       const fresh = { id: Date.now(), title: "New Chat", messages: [] };
       setChats([fresh]);
@@ -151,9 +155,10 @@ function App() {
     );
   }
 
-  // 💬 MAIN CHAT UI
+  // 💬 MAIN UI
   return (
     <div className="layout">
+
       {/* Sidebar */}
       <div className="sidebar">
         <div className="profile">
